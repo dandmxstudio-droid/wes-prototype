@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Wes · A Day With Your AI Partner</title>
+<meta name="description" content="A design prototype of Wes, an everyday AI partner for people in a career transition. Six moments, by Dan Mota.">
+<link rel="icon" href="./assets/wesembly-mark.png">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;height:100%;background:#E9E9F0;color:#080C10;font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#5B3DF5;text-decoration:underline;text-underline-offset:2px}
+a:hover{color:#4A2DE0}
+*{box-sizing:border-box}
+@keyframes wmBreath{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+@keyframes wmBlink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.12)}}
+@keyframes wmLean{0%,100%{transform:translate(0,0)}50%{transform:translate(-1.2px,.6px)}}
+@keyframes wmPop{0%{transform:scale(0)}100%{transform:scale(1)}}
+[data-composer]::placeholder{color:#6E7180;opacity:1}
+[data-pattern="wes-composer"]:focus-within > div{box-shadow:0 0 0 2px #5B3DF5, 0 0 0 1px rgba(8,12,16,0.05), 0 12px 32px -20px rgba(8,12,16,0.24)!important}
+[data-chapter]{transition:box-shadow .18s ease, transform .18s ease}
+[data-chapter]:hover,[data-chapter]:focus-visible{outline:none;box-shadow:0 0 0 2px #5B3DF5, 0 18px 40px -20px rgba(8,12,16,0.3)!important;transform:translateY(-2px)}
+[data-vp] [data-go]:not([data-chapter]):hover{filter:brightness(0.96)}
+@media (prefers-reduced-motion:reduce){[data-chapter]{transition:none}[data-chapter]:hover{transform:none}[data-wes-avatar] *{animation:none!important}}
+[data-pattern="suggested-prompts"]::-webkit-scrollbar{display:none}
+</style>
+<script src="./wes-typing.js"></script>
+</helmet>
+<div style="height:100vh;display:flex;flex-direction:column;background:#E9E9F0">
+  <div ref="{{ stageRef }}" style="flex:1;min-height:0;position:relative;overflow:hidden">
+    <div ref="{{ vpRef }}" onClick="{{ onVp }}" style="position:absolute;left:50%;top:50%;width:1440px;height:900px;transform:translate(-50%, -50%) scale(0.5);transform-origin:center center;overflow:hidden;border-radius:14px;background:#F4F4F8;box-shadow:0 1px 3px rgba(8,12,16,0.08), 0 32px 64px -24px rgba(8,12,16,0.3)"></div>
+    <sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}">
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:#565A68">Loading prototype…</div>
+    </sc-if>
+  </div>
+  <sc-if value="{{ inChapter }}" hint-placeholder-val="{{ false }}">
+    <div data-pattern="proto-bar" style="height:72px;flex:none;display:flex;align-items:center;gap:16px;padding:0 20px;background:#FFFFFF;border-top:1px solid #E4E5EE">
+      <button type="button" onClick="{{ goHome }}" style-hover="background:#F1F1F7" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 14px;border:0;border-radius:12px;background:transparent;font-family:Inter,system-ui,sans-serif;font-size:15px;font-weight:600;color:#080C10;cursor:pointer;flex:none">← Chapters</button>
+      <span style="width:1px;height:28px;background:#E4E5EE;flex:none"></span>
+      <div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:none">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.14em;color:#5B3DF5">{{ chLabel }}</span>
+        <span style="font-size:16px;font-weight:650;letter-spacing:-0.015em;white-space:nowrap">{{ chTitle }}</span>
+      </div>
+      <div aria-hidden="true" style="display:flex;gap:4px;align-items:center;flex:none;margin-left:4px">
+        <sc-for list="{{ dots }}" as="dt" hint-placeholder-count="3">
+          <span style="height:5px;width:{{ dt.w }};border-radius:9999px;background:{{ dt.bg }}"></span>
+        </sc-for>
+      </div>
+      <span role="status" aria-live="polite" style="flex:1;min-width:0;font-size:14.5px;line-height:1.4;color:#565A68;text-wrap:pretty;padding-left:8px">{{ hint }}</span>
+      <sc-if value="{{ notEnded }}" hint-placeholder-val="{{ true }}">
+        <button type="button" onClick="{{ restart }}" style-hover="background:#F1F1F7" style="height:44px;padding:0 14px;border:0;border-radius:12px;background:transparent;font-family:Inter,system-ui,sans-serif;font-size:15px;font-weight:500;color:#565A68;cursor:pointer;flex:none">Restart chapter</button>
+      </sc-if>
+      <sc-if value="{{ ended }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:8px;flex:none">
+          <button type="button" onClick="{{ restart }}" style-hover="background:#F1F1F7" style="height:44px;padding:0 14px;border:0;border-radius:12px;background:transparent;font-family:Inter,system-ui,sans-serif;font-size:15px;font-weight:500;color:#565A68;cursor:pointer">Replay</button>
+          <sc-if value="{{ hasNext }}" hint-placeholder-val="{{ true }}">
+            <button type="button" onClick="{{ nextChapter }}" style-hover="background:#F4F2FE" style="height:44px;padding:0 16px;border:0;border-radius:12px;background:#FFFFFF;box-shadow:inset 0 0 0 1.5px #D3D5E0;font-family:Inter,system-ui,sans-serif;font-size:15px;font-weight:600;color:#080C10;cursor:pointer">Next chapter →</button>
+          </sc-if>
+          <button type="button" onClick="{{ goHome }}" style-hover="background:#4A2DE0" style="height:44px;padding:0 18px;border:0;border-radius:12px;background:#5B3DF5;font-family:Inter,system-ui,sans-serif;font-size:15px;font-weight:600;color:#FFFFFF;cursor:pointer">Back to chapters</button>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const KEY = 'wesMoments.v1';
+const STATUS = { neutral: 'Online', thinking: 'Thinking…', listening: 'Listening…', success: 'Online' };
+class Component extends DCLogic {
+  state = { ready: false, ch: -1, si: 0, ui: {}, ended: false };
+  stageRef = React.createRef();
+  vpRef = React.createRef();
+  hist = [];
+  RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  componentDidMount() {
+    this.load();
+    if (window.ResizeObserver && this.stageRef.current) { this.ro = new ResizeObserver(() => this.fit()); this.ro.observe(this.stageRef.current); }
+    const el = this.vpRef.current; if (!el) return;
+    const isC = (e) => e.target && e.target.matches && e.target.matches('[data-composer]');
+    this.ev = {
+      focusin: (e) => { if (isC(e)) this.listen(true); },
+      focusout: (e) => { if (isC(e)) this.listen(false); },
+      input: (e) => { if (isC(e)) this.sendState(); },
+      keydown: (e) => {
+        if (isC(e) && e.key === 'Enter') { e.preventDefault(); this.send(); return; }
+        const g = e.target && e.target.closest && e.target.closest('[data-go]');
+        if (g && !isC(e) && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); this.act(g.getAttribute('data-go')); }
+      } };
+    Object.keys(this.ev).forEach(k => el.addEventListener(k, this.ev[k]));
+  }
+  componentWillUnmount() { if (this.ro) this.ro.disconnect(); this.stop(); clearTimeout(this.navT); const el = this.vpRef.current; if (el && this.ev) Object.keys(this.ev).forEach(k => el.removeEventListener(k, this.ev[k])); }
+  async load() {
+    const get = async (p) => (await fetch(p, { cache: 'no-store' })).text();
+    const [v, p] = await Promise.all([get('tools/mvp6.js'), get('tools/proto7-flows.js')]);
+    const V = new Function(v + '\nreturn V;')();
+    this.P = new Function('V', p + '\nreturn P;')(V);
+    let sv = {}; try { sv = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) {}
+    const ch = typeof sv.ch === 'number' && sv.ch >= -1 && sv.ch < this.P.CH.length ? sv.ch : -1;
+    const si = ch >= 0 ? Math.min(Math.max(0, sv.si || 0), this.P.CH[ch].steps.length - 1) : 0;
+    this.hist = ch >= 0 && Array.isArray(sv.hist) ? sv.hist : [];
+    this.setState({ ready: true, ch, si, ui: sv.ui || {} });
+  }
+  componentDidUpdate() {
+    const { ch, si, ui, ready } = this.state;
+    if (ready) { try { localStorage.setItem(KEY, JSON.stringify({ ch, si, ui, hist: this.hist })); } catch (e) {} }
+    this.paint();
+  }
+  step() { const { ch, si } = this.state; return this.P && ch >= 0 ? this.P.CH[ch].steps[si] : null; }
+  fit() {
+    const st = this.stageRef.current, el = this.vpRef.current; if (!st || !el) return;
+    const r = st.getBoundingClientRect();
+    const s = Math.max(0.2, Math.min((r.width - 48) / 1440, (r.height - 48) / 900, 1)); this.scale = s;
+    el.style.transform = `translate(-50%, -50%) scale(${s})`;
+  }
+  paint() {
+    const el = this.vpRef.current; if (!this.P || !el) return;
+    const { ch, si, ui } = this.state;
+    const key = [ch, si, JSON.stringify(ui)].join('|'); if (key === this.painted) return; this.painted = key;
+    this.stop();
+    el.innerHTML = this.P.render(ch, si, ui);
+    this.fit();
+    const st = this.step(); if (!st) return;
+    this.wire(el, st); this.sendState(); this.run(el, st);
+  }
+  wire(el, st) {
+    const EX = ['History', 'What Wes knows', 'Account menu', 'Copy', 'Save', 'Share', 'Close'];
+    const go = st.go || {};
+    el.querySelectorAll('[role="button"],[role="link"],a[href]').forEach(n => {
+      if (n.hasAttribute('data-go')) return;
+      const lab = n.getAttribute('aria-label') || '', txt = (n.textContent || '').replace(/\s+/g, ' ').trim();
+      if (lab === 'Send') return n.setAttribute('data-go', 'send');
+      if (lab === 'Dictate' || txt === 'Something else') return n.setAttribute('data-go', 'focus');
+      if (lab === 'Back to Today') return n.setAttribute('data-go', 'back');
+      if (go[txt]) return n.setAttribute('data-go', go[txt]);
+      if (st.end || n.closest('nav') || n.closest('[data-pattern="overnight-log"]') || n.hasAttribute('aria-haspopup') || EX.includes(lab) || txt === 'Undo' || txt === 'Finish later' || /Explore/.test(txt)) return;
+      n.setAttribute('data-go', 'next|pick=' + txt.replace(/\|/g, '/'));
+    });
+    el.querySelectorAll('[data-go]').forEach(n => { n.style.cursor = 'pointer'; });
+  }
+  // ---------- sequencing ----------
+  stop() { const t = this.tok; if (!t) return; t.dead = true; t.t.forEach(clearTimeout); if (t.typer) t.typer.finish(); t.res.forEach(r => r()); t.res.clear(); }
+  ff() { const t = this.tok; if (!t || t.done) return; t.fast = true; if (t.typer) t.typer.finish(); t.res.forEach(r => r()); t.res.clear(); }
+  hide(n) { if (!n) return; n.__d = n.style.display; n.style.display = 'none'; }
+  show(n) { if (!n) return; n.style.display = n.__d || ''; if (!this.RM && n.animate && !(this.tok && this.tok.fast)) n.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 280, easing: 'cubic-bezier(.2,.7,.3,1)' }); }
+  follow(n) {
+    const c = n && n.closest && n.closest('[data-scroll]'); if (!c) return;
+    const behavior = this.RM ? 'auto' : 'smooth';
+    if (c.getAttribute('data-scroll') === 'bottom') { c.scrollTo({ top: c.scrollHeight, behavior }); return; }
+    const s = this.scale || 1, cr = c.getBoundingClientRect(), r = n.getBoundingClientRect();
+    const top = (r.top - cr.top) / s, bottom = (r.bottom - cr.top) / s, h = cr.height / s;
+    if (bottom > h - 24) c.scrollTo({ top: c.scrollTop + Math.min(bottom - h + 32, top - 24), behavior });
+  }
+  setAv(svg, state) {
+    if (!svg || !svg.isConnected || svg.getAttribute('data-state') === state) return svg;
+    const tmp = document.createElement('div');
+    tmp.innerHTML = this.P.avatar(state, +svg.getAttribute('width') || 36, !this.RM, svg.hasAttribute('data-head') ? ' data-head=""' : '');
+    const n = tmp.firstElementChild; svg.replaceWith(n); return n;
+  }
+  setHead(state) {
+    const el = this.vpRef.current; if (!el) return;
+    this.setAv(el.querySelector('svg[data-head]'), state);
+    const s = el.querySelector('[data-status]'); if (s) s.textContent = STATUS[state] || 'Online';
+  }
+  listen(on) {
+    const st = this.step(); if (!st || st.calm || (this.tok && !this.tok.done)) return;
+    this.setHead(on ? 'listening' : 'neutral');
+  }
+  async run(el, st) {
+    const tok = this.tok = { t: [], res: new Set() };
+    const wait = (ms) => new Promise(r => { if (tok.fast || tok.dead) return r(); const f = () => { tok.res.delete(f); r(); }; tok.res.add(f); tok.t.push(setTimeout(f, ms)); });
+    const plan = [...el.querySelectorAll('[data-seq]')].map(n => {
+      const kind = n.getAttribute('data-seq');
+      if (kind !== 'wes' && kind !== 'say') { this.hide(n); return { n, kind }; }
+      let lines = [...n.querySelectorAll('[data-type]')];
+      if (!lines.length) lines = [...n.querySelectorAll('[data-pattern="wes-bubble"]')].slice(0, 1);
+      const after = []; let c = lines[lines.length - 1];
+      while (c && c !== n) { let s = c.nextElementSibling; while (s) { after.push(s); s = s.nextElementSibling; } c = c.parentElement; }
+      after.forEach(a => this.hide(a));
+      if (kind === 'wes') { this.hide(n); lines.forEach(l => this.hide(l)); } else lines.forEach(l => { l.style.visibility = 'hidden'; });
+      return { n, kind, lines, after, av: n.querySelector('svg[data-wes-avatar]'), succ: n.hasAttribute('data-success'), stagger: +(n.getAttribute('data-stagger') || 140) };
+    });
+    el.querySelectorAll('[data-scroll="bottom"]').forEach(c => { c.scrollTop = c.scrollHeight; });
+    if (plan.length) await wait(280);
+    for (const p of plan) {
+      if (tok.dead) return;
+      if (p.kind === 'user' || p.kind === 'show') { this.show(p.n); this.follow(p.n); await wait(p.kind === 'user' ? 520 : 360); continue; }
+      if (p.kind === 'wes') this.show(p.n);
+      const pose = st.calm ? null : p.succ ? 'success' : 'thinking';
+      if (pose) { p.av = this.setAv(p.av, pose); if (pose === 'thinking') this.setHead('thinking'); }
+      this.follow(p.n);
+      await wait(p.succ ? 450 : 1000);
+      if (tok.dead) return;
+      if (pose === 'thinking') p.av = this.setAv(p.av, 'neutral');
+      p.lines.forEach(l => { if (p.kind === 'wes') { l.style.display = l.__d || ''; } else l.style.visibility = ''; });
+      this.follow(p.lines[p.lines.length - 1] || p.n);
+      if (p.lines.length && window.WesTyping) await new Promise(r => { tok.res.add(r); tok.typer = window.WesTyping.type(p.lines, { start: 0, instant: tok.fast, onDone: r }); });
+      tok.typer = null;
+      if (tok.dead) return;
+      if (pose === 'thinking') this.setHead('neutral');
+      for (const a of p.after) { if (tok.dead) return; this.show(a); this.follow(a); await wait(p.stagger); }
+      if (p.succ) tok.t.push(setTimeout(() => { if (!tok.dead) p.av = this.setAv(p.av, 'neutral'); }, 2600));
+    }
+    if (tok.dead) return;
+    tok.done = true;
+    if (st.focus) { const i = el.querySelector('[data-composer]'); if (i) { i.focus({ preventScroll: true }); const L = i.value.length; try { i.setSelectionRange(L, L); } catch (e) {} } }
+    if (st.end) this.setState({ ended: true });
+  }
+  // ---------- actions ----------
+  sendState() {
+    const el = this.vpRef.current; if (!el) return;
+    const i = el.querySelector('[data-composer]'), b = el.querySelector('[aria-label="Send"]'); if (!i || !b) return;
+    const on = !!i.value.trim();
+    b.style.background = on ? '#5B3DF5' : '#ECECF3'; b.setAttribute('aria-disabled', String(!on));
+    if (b.firstElementChild) b.firstElementChild.style.background = on ? '#FFFFFF' : '#6E7180';
+  }
+  send() {
+    const i = this.vpRef.current && this.vpRef.current.querySelector('[data-composer]');
+    const v = i ? i.value.replace(/\|/g, '/').trim() : '';
+    if (!v) { if (i) i.focus({ preventScroll: true }); return; }
+    this.act('next|pick=|msg=' + v);
+  }
+  act(a) {
+    const [cmd, ...kv] = a.split('|'); const ui = { ...this.state.ui }, got = {};
+    kv.forEach(p => { const i = p.indexOf('='); if (i > 0) got[p.slice(0, i)] = p.slice(i + 1); });
+    if (cmd.startsWith('ch:')) return this.pick(parseInt(cmd.slice(3), 10));
+    if (cmd === 'home') return this.pick(-1);
+    if (cmd === 'send') return this.send();
+    if (cmd === 'focus') { const i = this.vpRef.current && this.vpRef.current.querySelector('[data-composer]'); if (i) i.focus({ preventScroll: true }); return; }
+    if (cmd === 'back') return this.back();
+    const st = this.step(); if (!st || st.end) return;
+    if ('pick' in got && !('msg' in got)) delete ui.msg;
+    Object.assign(ui, got);
+    const n = st.next ? st.next(ui.pick, ui) : this.state.si + 1;
+    if (cmd === 'done') {
+      this.stop(); this.setHead('success');
+      const el = this.vpRef.current, avs = el ? [...el.querySelectorAll('[data-pattern="wes-message"] svg[data-wes-avatar]')] : [];
+      if (avs.length) this.setAv(avs[avs.length - 1], 'success');
+      clearTimeout(this.navT); this.navT = setTimeout(() => this.goTo(n, ui), 900); return;
+    }
+    this.goTo(n, ui);
+  }
+  goTo(si, ui) { clearTimeout(this.navT); this.hist.push(this.state.si); this.setState({ si, ui, ended: false }); }
+  back() { clearTimeout(this.navT); if (!this.hist.length) return; const p = this.hist.pop(); this.setState({ si: p, ended: false }); }
+  pick(ch) { this.stop(); clearTimeout(this.navT); this.hist = []; this.painted = null; this.setState({ ch, si: 0, ui: {}, ended: false }); }
+  renderVals() {
+    const { ready, ch, si, ended } = this.state, P = this.P;
+    const C = P && ch >= 0 ? P.CH[ch] : null, st = C ? C.steps[si] : null;
+    const main = C ? C.steps.filter(s => !s.alt) : [], cur = st ? (st.alt ? st.dot : si) : 0;
+    return {
+      loading: !ready, stageRef: this.stageRef, vpRef: this.vpRef,
+      inChapter: !!C, ended: !!(C && ended), notEnded: !!(C && !ended), hasNext: !!(C && ch < P.CH.length - 1),
+      chLabel: C ? `CHAPTER ${ch + 1} OF ${P.CH.length}` : '', chTitle: C ? C.title : '', hint: st ? st.hint : '',
+      dots: main.map((_, i) => ({ w: i === cur ? '22px' : '8px', bg: i === cur ? '#5B3DF5' : i < cur ? '#C9BEFB' : '#E4E5EE' })),
+      goHome: () => this.pick(-1),
+      nextChapter: () => this.pick(Math.min(ch + 1, P.CH.length - 1)),
+      restart: () => this.pick(ch),
+      onVp: (e) => {
+        const t = e.target && e.target.closest ? e.target.closest('[data-go]') : null;
+        if (t && this.vpRef.current && this.vpRef.current.contains(t)) { e.preventDefault(); this.act(t.getAttribute('data-go')); return; }
+        if (!(e.target && e.target.closest && e.target.closest('input'))) this.ff();
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>
